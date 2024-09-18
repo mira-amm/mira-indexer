@@ -1,0 +1,5 @@
+type Pool {
+  id: ID!
+  reserve_0: BigInt!
+  reserve_1: BigInt!
+}
