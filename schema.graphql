@@ -1,5 +1,16 @@
 type Pool {
-  id: ID!
-  reserve_0: BigInt!
-  reserve_1: BigInt!
+    id: ID!
+    reserve_0: BigInt!
+    reserve_1: BigInt!
+}
+
+type Swap {
+    id: ID!
+    pool_id: ID! #TODO type? "foreign key"?
+    recipient: Bytes! #TODO
+    is_contract_recipient: Boolean!
+    asset_0_in: BigInt!
+    asset_1_in: BigInt!
+    asset_0_out: BigInt!
+    asset_1_out: BigInt!
 }
