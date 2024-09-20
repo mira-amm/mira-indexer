@@ -47,13 +47,16 @@ Mira.MintEvent.handler(async ({event, context}) => {
         reserve_1: pool.reserve_1 + event.params.asset_1_in,
     });
     let [address, isContract] = identityToStr(event.params.recipient);
-    context.AddLiquidity.set({
+    context.Transaction.set({
             id: randomUuid(),
+            transaction_type: "ADD_LIQUIDITY",
             pool_id: poolId,
             initiator: address,
             is_contract_initiator: isContract,
             asset_0_in: event.params.asset_0_in,
+            asset_0_out: 0n,
             asset_1_in: event.params.asset_1_in,
+            asset_1_out: 0n,
             block_time: event.block.time,
         }
     )
@@ -71,12 +74,15 @@ Mira.BurnEvent.handler(async ({event, context}) => {
         reserve_1: pool.reserve_1 - event.params.asset_1_out,
     });
     let [address, isContract] = identityToStr(event.params.recipient);
-    context.RemoveLiquidity.set({
+    context.Transaction.set({
             id: randomUuid(),
             pool_id: poolId,
+            transaction_type: "REMOVE_LIQUIDITY",
             initiator: address,
             is_contract_initiator: isContract,
+            asset_0_in: 0n,
             asset_0_out: event.params.asset_0_out,
+            asset_1_in: 0n,
             asset_1_out: event.params.asset_1_out,
             block_time: event.block.time,
         }
@@ -95,13 +101,16 @@ Mira.SwapEvent.handler(async ({event, context}) => {
         reserve_1: pool.reserve_1 + event.params.asset_1_in - event.params.asset_1_out,
     });
     let [address, isContract] = identityToStr(event.params.recipient);
-    context.Swap.set({
+    context.Transaction.set({
             id: randomUuid(),
             pool_id: poolId,
+            transaction_type: "SWAP",
             initiator: address,
             is_contract_initiator: isContract,
-            asset_0: event.params.asset_0_in - event.params.asset_0_out,
-            asset_1: event.params.asset_1_in - event.params.asset_1_out,
+            asset_0_in: event.params.asset_0_in,
+            asset_0_out: event.params.asset_0_out,
+            asset_1_in: event.params.asset_1_in,
+            asset_1_out: event.params.asset_1_out,
             block_time: event.block.time,
         }
     )

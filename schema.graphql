@@ -1,3 +1,9 @@
+enum TransactionType {
+    ADD_LIQUIDITY
+    REMOVE_LIQUIDITY
+    SWAP
+}
+
 type Pool {
     id: ID!
     asset_0: String!
@@ -7,32 +13,15 @@ type Pool {
     reserve_1: BigInt!
 }
 
-type Swap {
+type Transaction {
     id: ID!
-    pool_id: String! @index
-    initiator: String! @index
-    is_contract_initiator: Boolean!
-    asset_0: BigInt!
-    asset_1: BigInt!
-    block_time: Int! @index
-}
-
-type AddLiquidity {
-    id: ID!
-    pool_id: String! @index
+    transaction_type: TransactionType!
+    pool_id: String!
     initiator: String! @index
     is_contract_initiator: Boolean!
     asset_0_in: BigInt!
-    asset_1_in: BigInt!
-    block_time: Int! @index
-}
-
-type RemoveLiquidity {
-    id: ID!
-    pool_id: String! @index
-    initiator: String! @index
-    is_contract_initiator: Boolean!
     asset_0_out: BigInt!
+    asset_1_in: BigInt!
     asset_1_out: BigInt!
     block_time: Int! @index
 }
