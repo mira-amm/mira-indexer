@@ -38,6 +38,9 @@ Mira.CreatePoolEvent.handler(async ({event, context}) => {
 Mira.MintEvent.handler(async ({event, context}) => {
     let poolId = poolIdToStr(event.params.pool_id);
     let pool = await context.Pool.get(poolId);
+    if (pool === undefined) {
+        context.log.error(`Pool ${poolId} not found but received MintEvent`);
+    }
     context.Pool.set({
         id: poolId,
         asset_0: event.params.pool_id[0].bits,
@@ -65,6 +68,9 @@ Mira.MintEvent.handler(async ({event, context}) => {
 Mira.BurnEvent.handler(async ({event, context}) => {
     let poolId = poolIdToStr(event.params.pool_id);
     let pool = await context.Pool.get(poolId);
+    if (pool === undefined) {
+        context.log.error(`Pool ${poolId} not found but received BurnEvent`);
+    }
     context.Pool.set({
         id: poolId,
         asset_0: event.params.pool_id[0].bits,
@@ -103,6 +109,10 @@ Mira.SwapEvent.handler(async ({event, context}) => {
         context.SwapDaily.get(dailySnapshotId),
         context.SwapHourly.get(hourlySnapshotId),
     ]);
+
+    if (pool === undefined) {
+        context.log.error(`Pool ${poolId} not found but received SwapEvent`);
+    }
 
     context.Pool.set({
         id: poolId,
