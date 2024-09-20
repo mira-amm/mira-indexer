@@ -4,7 +4,7 @@
 import {
     Mira,
     Mira_type2 as PoolId,
-    Mira_type8 as Identity,
+    Mira_type8 as Identity
 } from "generated";
 import {v4 as randomUuid} from 'uuid';
 
@@ -37,14 +37,14 @@ Mira.CreatePoolEvent.handler(async ({event, context}) => {
 
 Mira.MintEvent.handler(async ({event, context}) => {
     let poolId = poolIdToStr(event.params.pool_id);
-    let pool = (await context.Pool.get(poolId))!;
+    let pool = await context.Pool.get(poolId);
     context.Pool.set({
         id: poolId,
-        asset_0: pool.asset_0,
-        asset_1: pool.asset_1,
-        is_stable: pool.is_stable,
-        reserve_0: pool.reserve_0 + event.params.asset_0_in,
-        reserve_1: pool.reserve_1 + event.params.asset_1_in,
+        asset_0: event.params.pool_id[0].bits,
+        asset_1: event.params.pool_id[1].bits,
+        is_stable: event.params.pool_id[2],
+        reserve_0: (pool?.reserve_0 ?? 0n) + event.params.asset_0_in,
+        reserve_1: (pool?.reserve_1 ?? 0n) + event.params.asset_1_in,
     });
     let [address, isContract] = identityToStr(event.params.recipient);
     context.Transaction.set({
@@ -64,14 +64,14 @@ Mira.MintEvent.handler(async ({event, context}) => {
 
 Mira.BurnEvent.handler(async ({event, context}) => {
     let poolId = poolIdToStr(event.params.pool_id);
-    let pool = (await context.Pool.get(poolId))!;
+    let pool = await context.Pool.get(poolId);
     context.Pool.set({
         id: poolId,
-        asset_0: pool.asset_0,
-        asset_1: pool.asset_1,
-        is_stable: pool.is_stable,
-        reserve_0: pool.reserve_0 - event.params.asset_0_out,
-        reserve_1: pool.reserve_1 - event.params.asset_1_out,
+        asset_0: event.params.pool_id[0].bits,
+        asset_1: event.params.pool_id[1].bits,
+        is_stable: event.params.pool_id[2],
+        reserve_0: (pool?.reserve_0 ?? 0n) - event.params.asset_0_out,
+        reserve_1: (pool?.reserve_1 ?? 0n) - event.params.asset_1_out,
     });
     let [address, isContract] = identityToStr(event.params.recipient);
     context.Transaction.set({
@@ -91,15 +91,30 @@ Mira.BurnEvent.handler(async ({event, context}) => {
 
 Mira.SwapEvent.handler(async ({event, context}) => {
     let poolId = poolIdToStr(event.params.pool_id);
-    let pool = (await context.Pool.get(poolId))!;
+
+    let dailyDate = new Date(event.block.time * 1000);
+    let dailyTimestamp = dailyDate.setHours(0, 0, 0, 0);
+    let dailySnapshotId = `${poolId}_${dailyTimestamp}`
+
+    let hourlyDate = new Date(event.block.time * 1000);
+    let hourlyTimestamp = hourlyDate.setMinutes(0, 0, 0);
+    let hourlySnapshotId = `${poolId}_${hourlyTimestamp}`
+
+    const [pool, dailySnapshot, hourlySnapshot] = await Promise.all([
+        context.Pool.get(poolId),
+        context.SwapDaily.get(dailySnapshotId),
+        context.SwapHourly.get(hourlySnapshotId),
+    ]);
+
     context.Pool.set({
         id: poolId,
-        asset_0: pool.asset_0,
-        asset_1: pool.asset_1,
-        is_stable: pool.is_stable,
-        reserve_0: pool.reserve_0 + event.params.asset_0_in - event.params.asset_0_out,
-        reserve_1: pool.reserve_1 + event.params.asset_1_in - event.params.asset_1_out,
+        asset_0: event.params.pool_id[0].bits,
+        asset_1: event.params.pool_id[1].bits,
+        is_stable: event.params.pool_id[2],
+        reserve_0: (pool?.reserve_0 ?? 0n) + event.params.asset_0_in - event.params.asset_0_out,
+        reserve_1: (pool?.reserve_1 ?? 0n) + event.params.asset_1_in - event.params.asset_1_out,
     });
+
     let [address, isContract] = identityToStr(event.params.recipient);
     context.Transaction.set({
             id: randomUuid(),
@@ -114,4 +129,24 @@ Mira.SwapEvent.handler(async ({event, context}) => {
             block_time: event.block.time,
         }
     )
+
+    context.SwapDaily.set({
+        id: dailySnapshotId,
+        pool_id: poolId,
+        snapshot_date: dailyDate,
+        asset_0_in: (dailySnapshot?.asset_0_in ?? 0n) + event.params.asset_0_in,
+        asset_0_out: (dailySnapshot?.asset_0_out ?? 0n) + event.params.asset_0_out,
+        asset_1_in: (dailySnapshot?.asset_1_in ?? 0n) + event.params.asset_1_in,
+        asset_1_out: (dailySnapshot?.asset_1_out ?? 0n) + event.params.asset_1_out,
+    });
+
+    context.SwapHourly.set({
+        id: hourlySnapshotId,
+        pool_id: poolId,
+        snapshot_date: hourlyDate,
+        asset_0_in: (hourlySnapshot?.asset_0_in ?? 0n) + event.params.asset_0_in,
+        asset_0_out: (hourlySnapshot?.asset_0_out ?? 0n) + event.params.asset_0_out,
+        asset_1_in: (hourlySnapshot?.asset_1_in ?? 0n) + event.params.asset_1_in,
+        asset_1_out: (hourlySnapshot?.asset_1_out ?? 0n) + event.params.asset_1_out,
+    });
 });

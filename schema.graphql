@@ -15,8 +15,8 @@ type Pool {
 
 type Transaction {
     id: ID!
-    transaction_type: TransactionType!
-    pool_id: String!
+    transaction_type: TransactionType! @index
+    pool_id: String! @index
     initiator: String! @index
     is_contract_initiator: Boolean!
     asset_0_in: BigInt!
@@ -24,4 +24,24 @@ type Transaction {
     asset_1_in: BigInt!
     asset_1_out: BigInt!
     block_time: Int! @index
+}
+
+type SwapDaily @index(fields: ["snapshot_date", "pool_id"]) {
+    id: ID!
+    pool_id: String!
+    snapshot_date: Timestamp!
+    asset_0_in: BigInt!
+    asset_0_out: BigInt!
+    asset_1_in: BigInt!
+    asset_1_out: BigInt!
+}
+
+type SwapHourly @index(fields: ["snapshot_date", "pool_id"]) {
+    id: ID!
+    pool_id: String!
+    snapshot_date: Timestamp!
+    asset_0_in: BigInt!
+    asset_0_out: BigInt!
+    asset_1_in: BigInt!
+    asset_1_out: BigInt!
 }
