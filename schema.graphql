@@ -29,7 +29,7 @@ type Transaction {
 type SwapDaily {
     id: ID!
     pool_id: String! @index
-    snapshot_date: Timestamp! @index
+    snapshot_time: Int! @index
     count: Int!
     asset_0_in: BigInt!
     asset_0_out: BigInt!
@@ -40,7 +40,7 @@ type SwapDaily {
 type SwapHourly {
     id: ID!
     pool_id: String! @index
-    snapshot_date: Timestamp! @index
+    snapshot_time: Int! @index
     count: Int!
     asset_0_in: BigInt!
     asset_0_out: BigInt!

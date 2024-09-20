@@ -92,12 +92,10 @@ Mira.BurnEvent.handler(async ({event, context}) => {
 Mira.SwapEvent.handler(async ({event, context}) => {
     let poolId = poolIdToStr(event.params.pool_id);
 
-    let dailyDate = new Date(event.block.time * 1000);
-    let dailyTimestamp = dailyDate.setHours(0, 0, 0, 0);
+    let dailyTimestamp = new Date(event.block.time * 1000).setHours(0, 0, 0, 0) / 1000;
     let dailySnapshotId = `${poolId}_${dailyTimestamp}`
 
-    let hourlyDate = new Date(event.block.time * 1000);
-    let hourlyTimestamp = hourlyDate.setMinutes(0, 0, 0);
+    let hourlyTimestamp = new Date(event.block.time * 1000).setMinutes(0, 0, 0) / 1000;
     let hourlySnapshotId = `${poolId}_${hourlyTimestamp}`
 
     const [pool, dailySnapshot, hourlySnapshot] = await Promise.all([
@@ -133,7 +131,7 @@ Mira.SwapEvent.handler(async ({event, context}) => {
     context.SwapDaily.set({
         id: dailySnapshotId,
         pool_id: poolId,
-        snapshot_date: dailyDate,
+        snapshot_time: dailyTimestamp,
         count: (dailySnapshot?.count ?? 0) + 1,
         asset_0_in: (dailySnapshot?.asset_0_in ?? 0n) + event.params.asset_0_in,
         asset_0_out: (dailySnapshot?.asset_0_out ?? 0n) + event.params.asset_0_out,
@@ -144,7 +142,7 @@ Mira.SwapEvent.handler(async ({event, context}) => {
     context.SwapHourly.set({
         id: hourlySnapshotId,
         pool_id: poolId,
-        snapshot_date: hourlyDate,
+        snapshot_time: hourlyTimestamp,
         count: (hourlySnapshot?.count ?? 0) + 1,
         asset_0_in: (hourlySnapshot?.asset_0_in ?? 0n) + event.params.asset_0_in,
         asset_0_out: (hourlySnapshot?.asset_0_out ?? 0n) + event.params.asset_0_out,
