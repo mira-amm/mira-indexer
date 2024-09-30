@@ -4,10 +4,12 @@ ecosystem: fuel
 networks:
   - id: 0
     start_block: 0
+    hyperfuel_config: #TODO remove this and change network.id after envio release
+      url: https://fuel.hypersync.xyz
     contracts:
       - name: Mira
         address:
-          - 0xd5a716d967a9137222219657d7877bd8c79c64e1edb5de9f2901c98ebe74da80
+          - 0x13620e7df155f0027d13172e9a8a3ec030d7a4f001fe72ff00636422a3093e07
         abi_file_path: abis/mira-abi.json
         handler: src/EventHandlers.ts
         events:
