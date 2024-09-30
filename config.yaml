@@ -8,7 +8,7 @@ networks:
       - name: Mira
         address:
           - 0xd5a716d967a9137222219657d7877bd8c79c64e1edb5de9f2901c98ebe74da80
-        abi_file_path: abis/mira-abi.json
+        abi_file_path: abis/testnet/mira-abi.json
         handler: src/EventHandlers.ts
         events:
           - name: MintEvent
