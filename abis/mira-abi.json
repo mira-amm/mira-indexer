@@ -10,7 +10,7 @@
     {
       "type": "(struct std::asset_id::AssetId, struct std::asset_id::AssetId, bool)",
       "concreteTypeId": "a95e1fcceb1451b8a76471f593f66c4a52ca04bde3c227c746ad7aaf988de5c6",
-      "metadataTypeId": 2
+      "metadataTypeId": 3
     },
     {
       "type": "(u64, u64)",
@@ -20,7 +20,7 @@
     {
       "type": "(u64, u64, u64, u64)",
       "concreteTypeId": "8e01ff69affed33f4459c1cd8303bcc6d694800f53e508dd1e088a51017b6e11",
-      "metadataTypeId": 3
+      "metadataTypeId": 2
     },
     {
       "type": "b256",
@@ -136,34 +136,54 @@
       "metadataTypeId": 19
     },
     {
+      "type": "struct standards::src20::SetDecimalsEvent",
+      "concreteTypeId": "fbe071a6e7ca2b2b5e503e82638f9f11c861a6fb452b65473eca8260db87392d",
+      "metadataTypeId": 20
+    },
+    {
+      "type": "struct standards::src20::SetNameEvent",
+      "concreteTypeId": "6ce295b0fb4c1c15e8ed1cfa4babda47d8a04940a5266a3229e12243a2e37c2c",
+      "metadataTypeId": 21
+    },
+    {
+      "type": "struct standards::src20::SetSymbolEvent",
+      "concreteTypeId": "a8a4b78066c51a50da6349bd395fe1c67e774d75c1db2c5c22288a432d7a363d",
+      "metadataTypeId": 22
+    },
+    {
+      "type": "struct standards::src20::TotalSupplyEvent",
+      "concreteTypeId": "f255d5cc2114d1b6bc34bef4c28d4b60caccffd9a672ed16b79ea217e1c4a8a3",
+      "metadataTypeId": 23
+    },
+    {
       "type": "struct std::asset_id::AssetId",
       "concreteTypeId": "c0710b6731b1dd59799cf6bef33eee3b3b04a2e40e80a0724090215bbf2ca974",
-      "metadataTypeId": 21
+      "metadataTypeId": 25
     },
     {
       "type": "struct std::bytes::Bytes",
       "concreteTypeId": "cdd87b7d12fe505416570c294c884bca819364863efe3bf539245fa18515fbbb",
-      "metadataTypeId": 22
+      "metadataTypeId": 26
     },
     {
       "type": "struct std::contract_id::ContractId",
       "concreteTypeId": "29c10735d33b5159f0c71ee1dbd17b36a3e69e41f00fab0d42e1bd9f428d8a54",
-      "metadataTypeId": 24
+      "metadataTypeId": 28
     },
     {
       "type": "struct std::string::String",
       "concreteTypeId": "9a7f1d3e963c10e0a4ea70a8e20a4813d1dc5682e28f74cb102ae50d32f7f98c",
-      "metadataTypeId": 25
+      "metadataTypeId": 29
     },
     {
       "type": "struct sway_libs::ownership::events::OwnershipSet",
       "concreteTypeId": "e1ef35033ea9d2956f17c3292dea4a46ce7d61fdf37bbebe03b7b965073f43b5",
-      "metadataTypeId": 26
+      "metadataTypeId": 30
     },
     {
       "type": "struct sway_libs::ownership::events::OwnershipTransferred",
       "concreteTypeId": "b3fffbcb3158d7c010c31b194b60fb7857adb4ad61bdcf4b8b42958951d9f308",
-      "metadataTypeId": 27
+      "metadataTypeId": 31
     },
     {
       "type": "u64",
@@ -195,35 +215,17 @@
       "components": [
         {
           "name": "__tuple_element",
-          "typeId": 28
+          "typeId": 32
         },
         {
           "name": "__tuple_element",
-          "typeId": 28
-        }
-      ]
-    },
-    {
-      "type": "(_, _, _)",
-      "metadataTypeId": 2,
-      "components": [
-        {
-          "name": "__tuple_element",
-          "typeId": 21
-        },
-        {
-          "name": "__tuple_element",
-          "typeId": 21
-        },
-        {
-          "name": "__tuple_element",
-          "typeId": "b760f44fa5965c2474a3b471467a22c43185152129295af588b022ae50b50903"
+          "typeId": 32
         }
       ]
     },
     {
       "type": "(_, _, _, _)",
-      "metadataTypeId": 3,
+      "metadataTypeId": 2,
       "components": [
         {
           "name": "__tuple_element",
@@ -240,6 +242,24 @@
         {
           "name": "__tuple_element",
           "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ]
+    },
+    {
+      "type": "(struct std::asset_id::AssetId, struct std::asset_id::AssetId, bool)",
+      "metadataTypeId": 3,
+      "components": [
+        {
+          "name": "__tuple_element",
+          "typeId": 25
+        },
+        {
+          "name": "__tuple_element",
+          "typeId": 25
+        },
+        {
+          "name": "__tuple_element",
+          "typeId": "b760f44fa5965c2474a3b471467a22c43185152129295af588b022ae50b50903"
         }
       ]
     },
@@ -271,15 +291,15 @@
       "components": [
         {
           "name": "PoolAlreadyExists",
-          "typeId": 2
+          "typeId": 3
         },
         {
           "name": "PoolDoesNotExist",
-          "typeId": 2
+          "typeId": 3
         },
         {
           "name": "InvalidAsset",
-          "typeId": 21
+          "typeId": 25
         },
         {
           "name": "ZeroInputAmount",
@@ -349,11 +369,11 @@
       "components": [
         {
           "name": "Address",
-          "typeId": 20
+          "typeId": 24
         },
         {
           "name": "ContractId",
-          "typeId": 24
+          "typeId": 28
         }
       ]
     },
@@ -408,7 +428,7 @@
       "components": [
         {
           "name": "id",
-          "typeId": 21
+          "typeId": 25
         },
         {
           "name": "amount",
@@ -448,7 +468,7 @@
       "components": [
         {
           "name": "pool_id",
-          "typeId": 2
+          "typeId": 3
         },
         {
           "name": "recipient",
@@ -474,7 +494,15 @@
       "components": [
         {
           "name": "pool_id",
-          "typeId": 2
+          "typeId": 3
+        },
+        {
+          "name": "decimals_0",
+          "typeId": "c89951a24c6ca28c13fd1cfdc646b2b656d69e61a92b91023be7eb58eb914b6b"
+        },
+        {
+          "name": "decimals_1",
+          "typeId": "c89951a24c6ca28c13fd1cfdc646b2b656d69e61a92b91023be7eb58eb914b6b"
         }
       ]
     },
@@ -484,7 +512,7 @@
       "components": [
         {
           "name": "pool_id",
-          "typeId": 2
+          "typeId": 3
         },
         {
           "name": "recipient",
@@ -510,7 +538,7 @@
       "components": [
         {
           "name": "pool_id",
-          "typeId": 2
+          "typeId": 3
         },
         {
           "name": "recipient",
@@ -535,8 +563,92 @@
       ]
     },
     {
-      "type": "struct std::address::Address",
+      "type": "struct standards::src20::SetDecimalsEvent",
       "metadataTypeId": 20,
+      "components": [
+        {
+          "name": "asset",
+          "typeId": 25
+        },
+        {
+          "name": "decimals",
+          "typeId": "c89951a24c6ca28c13fd1cfdc646b2b656d69e61a92b91023be7eb58eb914b6b"
+        },
+        {
+          "name": "sender",
+          "typeId": 8
+        }
+      ]
+    },
+    {
+      "type": "struct standards::src20::SetNameEvent",
+      "metadataTypeId": 21,
+      "components": [
+        {
+          "name": "asset",
+          "typeId": 25
+        },
+        {
+          "name": "name",
+          "typeId": 9,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 29
+            }
+          ]
+        },
+        {
+          "name": "sender",
+          "typeId": 8
+        }
+      ]
+    },
+    {
+      "type": "struct standards::src20::SetSymbolEvent",
+      "metadataTypeId": 22,
+      "components": [
+        {
+          "name": "asset",
+          "typeId": 25
+        },
+        {
+          "name": "symbol",
+          "typeId": 9,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 29
+            }
+          ]
+        },
+        {
+          "name": "sender",
+          "typeId": 8
+        }
+      ]
+    },
+    {
+      "type": "struct standards::src20::TotalSupplyEvent",
+      "metadataTypeId": 23,
+      "components": [
+        {
+          "name": "asset",
+          "typeId": 25
+        },
+        {
+          "name": "supply",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "sender",
+          "typeId": 8
+        }
+      ]
+    },
+    {
+      "type": "struct std::address::Address",
+      "metadataTypeId": 24,
       "components": [
         {
           "name": "bits",
@@ -546,7 +658,7 @@
     },
     {
       "type": "struct std::asset_id::AssetId",
-      "metadataTypeId": 21,
+      "metadataTypeId": 25,
       "components": [
         {
           "name": "bits",
@@ -556,11 +668,11 @@
     },
     {
       "type": "struct std::bytes::Bytes",
-      "metadataTypeId": 22,
+      "metadataTypeId": 26,
       "components": [
         {
           "name": "buf",
-          "typeId": 23
+          "typeId": 27
         },
         {
           "name": "len",
@@ -570,7 +682,7 @@
     },
     {
       "type": "struct std::bytes::RawBytes",
-      "metadataTypeId": 23,
+      "metadataTypeId": 27,
       "components": [
         {
           "name": "ptr",
@@ -584,7 +696,7 @@
     },
     {
       "type": "struct std::contract_id::ContractId",
-      "metadataTypeId": 24,
+      "metadataTypeId": 28,
       "components": [
         {
           "name": "bits",
@@ -594,17 +706,17 @@
     },
     {
       "type": "struct std::string::String",
-      "metadataTypeId": 25,
+      "metadataTypeId": 29,
       "components": [
         {
           "name": "bytes",
-          "typeId": 22
+          "typeId": 26
         }
       ]
     },
     {
       "type": "struct sway_libs::ownership::events::OwnershipSet",
-      "metadataTypeId": 26,
+      "metadataTypeId": 30,
       "components": [
         {
           "name": "new_owner",
@@ -614,7 +726,7 @@
     },
     {
       "type": "struct sway_libs::ownership::events::OwnershipTransferred",
-      "metadataTypeId": 27,
+      "metadataTypeId": 31,
       "components": [
         {
           "name": "new_owner",
@@ -628,7 +740,7 @@
     },
     {
       "type": "u256",
-      "metadataTypeId": 28
+      "metadataTypeId": 32
     }
   ],
   "functions": [
@@ -972,8 +1084,24 @@
       "concreteTypeId": "75021c092fbe6c5da8e67b3bb45d05bac56d20ca3deb794f199db139578eee3b"
     },
     {
+      "logId": "17462098202904023478",
+      "concreteTypeId": "f255d5cc2114d1b6bc34bef4c28d4b60caccffd9a672ed16b79ea217e1c4a8a3"
+    },
+    {
       "logId": "3903049024573527731",
       "concreteTypeId": "362a6a689aa3d6b3e2d50426f7c94ce2717b22f1df0b7ffe541cbcb25e0b9c65"
+    },
+    {
+      "logId": "7845998088195677205",
+      "concreteTypeId": "6ce295b0fb4c1c15e8ed1cfa4babda47d8a04940a5266a3229e12243a2e37c2c"
+    },
+    {
+      "logId": "12152039456660331088",
+      "concreteTypeId": "a8a4b78066c51a50da6349bd395fe1c67e774d75c1db2c5c22288a432d7a363d"
+    },
+    {
+      "logId": "18149631459970394923",
+      "concreteTypeId": "fbe071a6e7ca2b2b5e503e82638f9f11c861a6fb452b65473eca8260db87392d"
     },
     {
       "logId": "12224862438738316526",
@@ -1009,12 +1137,12 @@
     {
       "name": "LP_FEE_VOLATILE",
       "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
-      "offset": 72464
+      "offset": 75784
     },
     {
       "name": "LP_FEE_STABLE",
       "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
-      "offset": 72456
+      "offset": 75776
     }
   ]
 }
