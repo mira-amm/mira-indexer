@@ -25,6 +25,8 @@ type Transaction {
     asset_1_out: BigInt!
     block_time: Int! @index
     extra: String
+    lp_id: String
+    lp_amount: BigInt
 }
 
 type SwapDaily {

@@ -14,6 +14,10 @@ type IdentityIsContract = [string, boolean];
 interface ExtraEvent {
     pool_id: string;
     transaction_type: string;
+    initiator: string;
+    is_contract_initiator: boolean;
+    lp_id: string | undefined;
+    lp_amount: string | undefined;
     asset_0_in: string;
     asset_0_out: string;
     asset_1_in: string;
@@ -22,12 +26,16 @@ interface ExtraEvent {
 
 function extract(transaction: Transaction): ExtraEvent {
     return {
+        initiator: transaction.initiator,
+        is_contract_initiator: transaction.is_contract_initiator,
+        lp_amount: transaction.lp_amount?.toString(),
+        lp_id: transaction.lp_id,
         pool_id: transaction.pool_id,
         transaction_type: transaction.transaction_type,
         asset_0_in: transaction.asset_0_in.toString(),
-        asset_0_out:transaction.asset_0_out.toString(),
+        asset_0_out: transaction.asset_0_out.toString(),
         asset_1_in: transaction.asset_1_in.toString(),
-        asset_1_out: transaction.asset_1_out.toString(),
+        asset_1_out: transaction.asset_1_out.toString()
     }
 }
 
@@ -97,6 +105,8 @@ Mira.MintEvent.handler(async ({event, context}) => {
         asset_1_in: event.params.asset_1_in,
         asset_1_out: 0n,
         block_time: event.block.time,
+        lp_id: event.params.liquidity.id.bits,
+        lp_amount: event.params.liquidity.amount,
         extra: undefined
     };
     await upsertTransaction(context, transaction);
@@ -128,6 +138,8 @@ Mira.BurnEvent.handler(async ({event, context}) => {
         asset_1_in: 0n,
         asset_1_out: event.params.asset_1_out,
         block_time: event.block.time,
+        lp_id: event.params.liquidity.id.bits,
+        lp_amount: event.params.liquidity.amount,
         extra: undefined
     };
     await upsertTransaction(context, transaction);
@@ -173,6 +185,8 @@ Mira.SwapEvent.handler(async ({event, context}) => {
         asset_1_in: event.params.asset_1_in,
         asset_1_out: event.params.asset_1_out,
         block_time: event.block.time,
+        lp_id: undefined,
+        lp_amount: undefined,
         extra: undefined
     };
     await upsertTransaction(context, transaction);
