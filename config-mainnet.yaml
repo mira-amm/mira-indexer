@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=./node_modules/envio/fuel.schema.json
+name: envio-indexer
+ecosystem: fuel
+networks:
+  - id: 0
+    start_block: 0
+    hyperfuel_config: #TODO remove this and change network.id after envio release
+      url: https://fuel.hypersync.xyz
+    contracts:
+      - name: Mira
+        address:
+          - 0x9fa5b30391db65c0fa52d5f9669e98b65904ef02082d0c474c1f8c7ee66f96c0
+        abi_file_path: abis/mainnet/mira-abi.json
+        handler: src/EventHandlers.ts
+        events:
+          - name: MintEvent
+          - name: BurnEvent
+          - name: CreatePoolEvent
+          - name: SwapEvent

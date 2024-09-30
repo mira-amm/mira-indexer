@@ -1,0 +1,52 @@
+enum TransactionType {
+    ADD_LIQUIDITY
+    REMOVE_LIQUIDITY
+    SWAP
+}
+
+type Pool {
+    id: ID!
+    asset_0: String!
+    asset_1: String!
+    is_stable: Boolean!
+    reserve_0: BigInt!
+    reserve_1: BigInt!
+}
+
+type Transaction {
+    id: ID!
+    transaction_type: TransactionType! @index
+    pool_id: String! @index
+    initiator: String! @index
+    is_contract_initiator: Boolean!
+    asset_0_in: BigInt!
+    asset_0_out: BigInt!
+    asset_1_in: BigInt!
+    asset_1_out: BigInt!
+    block_time: Int! @index
+    extra: String
+    lp_id: String
+    lp_amount: BigInt
+}
+
+type SwapDaily {
+    id: ID!
+    pool_id: String! @index
+    snapshot_time: Int! @index
+    count: Int!
+    asset_0_in: BigInt!
+    asset_0_out: BigInt!
+    asset_1_in: BigInt!
+    asset_1_out: BigInt!
+}
+
+type SwapHourly {
+    id: ID!
+    pool_id: String! @index
+    snapshot_time: Int! @index
+    count: Int!
+    asset_0_in: BigInt!
+    asset_0_out: BigInt!
+    asset_1_in: BigInt!
+    asset_1_out: BigInt!
+}
