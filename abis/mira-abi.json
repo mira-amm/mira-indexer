@@ -10,7 +10,7 @@
     {
       "type": "(struct std::asset_id::AssetId, struct std::asset_id::AssetId, bool)",
       "concreteTypeId": "a95e1fcceb1451b8a76471f593f66c4a52ca04bde3c227c746ad7aaf988de5c6",
-      "metadataTypeId": 3
+      "metadataTypeId": 2
     },
     {
       "type": "(u64, u64)",
@@ -20,7 +20,7 @@
     {
       "type": "(u64, u64, u64, u64)",
       "concreteTypeId": "8e01ff69affed33f4459c1cd8303bcc6d694800f53e508dd1e088a51017b6e11",
-      "metadataTypeId": 2
+      "metadataTypeId": 3
     },
     {
       "type": "b256",
@@ -224,30 +224,8 @@
       ]
     },
     {
-      "type": "(_, _, _, _)",
+      "type": "(_, _, _)",
       "metadataTypeId": 2,
-      "components": [
-        {
-          "name": "__tuple_element",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        },
-        {
-          "name": "__tuple_element",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        },
-        {
-          "name": "__tuple_element",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        },
-        {
-          "name": "__tuple_element",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        }
-      ]
-    },
-    {
-      "type": "(struct std::asset_id::AssetId, struct std::asset_id::AssetId, bool)",
-      "metadataTypeId": 3,
       "components": [
         {
           "name": "__tuple_element",
@@ -260,6 +238,28 @@
         {
           "name": "__tuple_element",
           "typeId": "b760f44fa5965c2474a3b471467a22c43185152129295af588b022ae50b50903"
+        }
+      ]
+    },
+    {
+      "type": "(_, _, _, _)",
+      "metadataTypeId": 3,
+      "components": [
+        {
+          "name": "__tuple_element",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "__tuple_element",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "__tuple_element",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "__tuple_element",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
         }
       ]
     },
@@ -291,11 +291,11 @@
       "components": [
         {
           "name": "PoolAlreadyExists",
-          "typeId": 3
+          "typeId": 2
         },
         {
           "name": "PoolDoesNotExist",
-          "typeId": 3
+          "typeId": 2
         },
         {
           "name": "InvalidAsset",
@@ -468,7 +468,7 @@
       "components": [
         {
           "name": "pool_id",
-          "typeId": 3
+          "typeId": 2
         },
         {
           "name": "recipient",
@@ -494,7 +494,7 @@
       "components": [
         {
           "name": "pool_id",
-          "typeId": 3
+          "typeId": 2
         },
         {
           "name": "decimals_0",
@@ -512,7 +512,7 @@
       "components": [
         {
           "name": "pool_id",
-          "typeId": 3
+          "typeId": 2
         },
         {
           "name": "recipient",
@@ -538,7 +538,7 @@
       "components": [
         {
           "name": "pool_id",
-          "typeId": 3
+          "typeId": 2
         },
         {
           "name": "recipient",
@@ -1137,12 +1137,12 @@
     {
       "name": "LP_FEE_VOLATILE",
       "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
-      "offset": 75784
+      "offset": 76744
     },
     {
       "name": "LP_FEE_STABLE",
       "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
-      "offset": 75776
+      "offset": 76736
     }
   ]
 }
