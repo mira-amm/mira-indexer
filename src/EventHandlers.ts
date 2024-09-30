@@ -13,6 +13,7 @@ type IdentityIsContract = [string, boolean];
 
 interface ExtraEvent {
     pool_id: string;
+    transaction_type: string;
     asset_0_in: string;
     asset_0_out: string;
     asset_1_in: string;
@@ -22,6 +23,7 @@ interface ExtraEvent {
 function extract(transaction: Transaction): ExtraEvent {
     return {
         pool_id: transaction.pool_id,
+        transaction_type: transaction.transaction_type,
         asset_0_in: transaction.asset_0_in.toString(),
         asset_0_out:transaction.asset_0_out.toString(),
         asset_1_in: transaction.asset_1_in.toString(),
