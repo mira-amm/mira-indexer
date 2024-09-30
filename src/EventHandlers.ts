@@ -4,11 +4,30 @@
 import {
     Mira,
     Mira_type2 as PoolId,
-    Mira_type8 as Identity
+    Mira_type8 as Identity,
+    handlerContext as Context,
+    Transaction
 } from "generated";
-import {v4 as randomUuid} from 'uuid';
 
 type IdentityIsContract = [string, boolean];
+
+interface ExtraEvent {
+    pool_id: string;
+    asset_0_in: string;
+    asset_0_out: string;
+    asset_1_in: string;
+    asset_1_out: string;
+}
+
+function extract(transaction: Transaction): ExtraEvent {
+    return {
+        pool_id: transaction.pool_id,
+        asset_0_in: transaction.asset_0_in.toString(),
+        asset_0_out:transaction.asset_0_out.toString(),
+        asset_1_in: transaction.asset_1_in.toString(),
+        asset_1_out: transaction.asset_1_out.toString(),
+    }
+}
 
 function poolIdToStr(poolId: PoolId): string {
     return `${poolId[0].bits}_${poolId[1].bits}_${poolId[2]}`
@@ -20,6 +39,21 @@ function identityToStr(identity: Identity): IdentityIsContract {
             return [identity.payload.bits, false];
         case 'ContractId':
             return [identity.payload.bits, true];
+    }
+}
+
+async function upsertTransaction(context: Context, transaction: Transaction) {
+    let oldTransaction = await context.Transaction.get(transaction.id);
+    if (oldTransaction === undefined) {
+        context.Transaction.set(transaction);
+    } else {
+        let extra: ExtraEvent[] = JSON.parse(oldTransaction.extra ?? "[]");
+        extra.push(extract(transaction));
+        const enrichedTransaction = {
+            ...oldTransaction,
+            extra: JSON.stringify(extra)
+        };
+        context.Transaction.set(enrichedTransaction);
     }
 }
 
@@ -50,19 +84,20 @@ Mira.MintEvent.handler(async ({event, context}) => {
         reserve_1: (pool?.reserve_1 ?? 0n) + event.params.asset_1_in,
     });
     let [address, isContract] = identityToStr(event.params.recipient);
-    context.Transaction.set({
-            id: randomUuid(),
-            transaction_type: "ADD_LIQUIDITY",
-            pool_id: poolId,
-            initiator: address,
-            is_contract_initiator: isContract,
-            asset_0_in: event.params.asset_0_in,
-            asset_0_out: 0n,
-            asset_1_in: event.params.asset_1_in,
-            asset_1_out: 0n,
-            block_time: event.block.time,
-        }
-    )
+    let transaction: Transaction = {
+        id: event.transaction.id,
+        transaction_type: "ADD_LIQUIDITY",
+        pool_id: poolId,
+        initiator: address,
+        is_contract_initiator: isContract,
+        asset_0_in: event.params.asset_0_in,
+        asset_0_out: 0n,
+        asset_1_in: event.params.asset_1_in,
+        asset_1_out: 0n,
+        block_time: event.block.time,
+        extra: undefined
+    };
+    await upsertTransaction(context, transaction);
 });
 
 Mira.BurnEvent.handler(async ({event, context}) => {
@@ -80,19 +115,20 @@ Mira.BurnEvent.handler(async ({event, context}) => {
         reserve_1: (pool?.reserve_1 ?? 0n) - event.params.asset_1_out,
     });
     let [address, isContract] = identityToStr(event.params.recipient);
-    context.Transaction.set({
-            id: randomUuid(),
-            pool_id: poolId,
-            transaction_type: "REMOVE_LIQUIDITY",
-            initiator: address,
-            is_contract_initiator: isContract,
-            asset_0_in: 0n,
-            asset_0_out: event.params.asset_0_out,
-            asset_1_in: 0n,
-            asset_1_out: event.params.asset_1_out,
-            block_time: event.block.time,
-        }
-    )
+    let transaction: Transaction = {
+        id: event.transaction.id,
+        pool_id: poolId,
+        transaction_type: "REMOVE_LIQUIDITY",
+        initiator: address,
+        is_contract_initiator: isContract,
+        asset_0_in: 0n,
+        asset_0_out: event.params.asset_0_out,
+        asset_1_in: 0n,
+        asset_1_out: event.params.asset_1_out,
+        block_time: event.block.time,
+        extra: undefined
+    };
+    await upsertTransaction(context, transaction);
 });
 
 Mira.SwapEvent.handler(async ({event, context}) => {
@@ -124,19 +160,20 @@ Mira.SwapEvent.handler(async ({event, context}) => {
     });
 
     let [address, isContract] = identityToStr(event.params.recipient);
-    context.Transaction.set({
-            id: randomUuid(),
-            pool_id: poolId,
-            transaction_type: "SWAP",
-            initiator: address,
-            is_contract_initiator: isContract,
-            asset_0_in: event.params.asset_0_in,
-            asset_0_out: event.params.asset_0_out,
-            asset_1_in: event.params.asset_1_in,
-            asset_1_out: event.params.asset_1_out,
-            block_time: event.block.time,
-        }
-    )
+    let transaction: Transaction = {
+        id: event.transaction.id,
+        pool_id: poolId,
+        transaction_type: "SWAP",
+        initiator: address,
+        is_contract_initiator: isContract,
+        asset_0_in: event.params.asset_0_in,
+        asset_0_out: event.params.asset_0_out,
+        asset_1_in: event.params.asset_1_in,
+        asset_1_out: event.params.asset_1_out,
+        block_time: event.block.time,
+        extra: undefined
+    };
+    await upsertTransaction(context, transaction);
 
     context.SwapDaily.set({
         id: dailySnapshotId,
