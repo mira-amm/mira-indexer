@@ -1,5 +1,5 @@
 {
-  "name": "envio-indexer",
+  "name": "mira-indexer",
   "version": "0.1.0",
   "scripts": {
     "clean": "tsc --clean",
@@ -22,7 +22,7 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "envio": "2.3.2"
+    "envio": "2.4.1"
   },
   "optionalDependencies": {
     "generated": "./generated"
