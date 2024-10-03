@@ -2,8 +2,10 @@
 name: envio-indexer
 ecosystem: fuel
 networks:
-  - id: 9889
+  - id: 0
     start_block: 0
+    hyperfuel_config: #TODO
+      url: https://fuel.hypersync.xyz
     contracts:
       - name: Mira
         address:
