@@ -75,6 +75,7 @@ Mira.CreatePoolEvent.handler(async ({event, context}) => {
         is_stable: event.params.pool_id[2],
         reserve_0: 0n,
         reserve_1: 0n,
+        create_time: event.block.time,
     };
     context.Pool.set(pool);
 });
@@ -92,6 +93,7 @@ Mira.MintEvent.handler(async ({event, context}) => {
         is_stable: event.params.pool_id[2],
         reserve_0: (pool?.reserve_0 ?? 0n) + event.params.asset_0_in,
         reserve_1: (pool?.reserve_1 ?? 0n) + event.params.asset_1_in,
+        create_time: pool?.create_time ?? event.block.time,
     });
     let [address, isContract] = identityToStr(event.params.recipient);
     let transaction: Transaction = {
@@ -125,6 +127,7 @@ Mira.BurnEvent.handler(async ({event, context}) => {
         is_stable: event.params.pool_id[2],
         reserve_0: (pool?.reserve_0 ?? 0n) - event.params.asset_0_out,
         reserve_1: (pool?.reserve_1 ?? 0n) - event.params.asset_1_out,
+        create_time: pool?.create_time ?? event.block.time,
     });
     let [address, isContract] = identityToStr(event.params.recipient);
     let transaction: Transaction = {
@@ -171,6 +174,7 @@ Mira.SwapEvent.handler(async ({event, context}) => {
         is_stable: event.params.pool_id[2],
         reserve_0: (pool?.reserve_0 ?? 0n) + event.params.asset_0_in - event.params.asset_0_out,
         reserve_1: (pool?.reserve_1 ?? 0n) + event.params.asset_1_in - event.params.asset_1_out,
+        create_time: pool?.create_time ?? event.block.time,
     });
 
     let [address, isContract] = identityToStr(event.params.recipient);

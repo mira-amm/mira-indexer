@@ -11,6 +11,7 @@ type Pool {
     is_stable: Boolean!
     reserve_0: BigInt!
     reserve_1: BigInt!
+    create_time: Int!
 }
 
 type Transaction {
