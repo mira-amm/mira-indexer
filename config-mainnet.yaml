@@ -4,8 +4,6 @@ ecosystem: fuel
 networks:
   - id: 9889
     start_block: 0
-    hyperfuel_config:
-      url: https://fuel-mainnet-backup.hypersync.xyz
     contracts:
       - name: Mira
         address:
