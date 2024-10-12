@@ -14,8 +14,6 @@ type IdentityIsContract = [string, boolean];
 interface ExtraEvent {
     pool_id: string;
     transaction_type: string;
-    initiator: string;
-    is_contract_initiator: boolean;
     lp_id: string | undefined;
     lp_amount: string | undefined;
     asset_0_in: string;
@@ -26,8 +24,6 @@ interface ExtraEvent {
 
 function extract(transaction: Transaction): ExtraEvent {
     return {
-        initiator: transaction.initiator,
-        is_contract_initiator: transaction.is_contract_initiator,
         lp_amount: transaction.lp_amount?.toString(),
         lp_id: transaction.lp_id,
         pool_id: transaction.pool_id,
@@ -61,6 +57,7 @@ async function upsertTransaction(context: Context, transaction: Transaction) {
         extra.push(extract(transaction));
         const enrichedTransaction = {
             ...oldTransaction,
+            initiator: transaction.initiator,
             extra: JSON.stringify(extra)
         };
         context.Transaction.set(enrichedTransaction);

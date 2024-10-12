@@ -653,6 +653,7 @@ packages:
 
   envio@2.4.4:
     resolution: {integrity: sha512-4ZtUOgBZ8l2cDnmRW0d60AQ/A5q4DxfDd7I1MQxQiD48Pu5P/H/z6QPk2D7QdE2iza/T0IIVvmTCoubZGURVEw==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     hasBin: true
 
   es-define-property@1.0.0:
@@ -2848,7 +2849,7 @@ snapshots:
   webauthn-p256@0.0.5:
     dependencies:
       '@noble/curves': 1.4.0
-      '@noble/hashes': 1.5.0
+      '@noble/hashes': 1.4.0
 
   webidl-conversions@3.0.1: {}
 
