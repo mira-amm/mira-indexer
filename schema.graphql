@@ -51,3 +51,8 @@ type SwapHourly {
     asset_1_in: BigInt!
     asset_1_out: BigInt!
 }
+
+type DeDuplicator {
+  id: ID!
+  additionalDuplications: Int!
+}

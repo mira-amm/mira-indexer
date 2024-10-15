@@ -6,7 +6,8 @@ import {
     Mira_type2 as PoolId,
     Mira_type8 as Identity,
     handlerContext as Context,
-    Transaction
+    Transaction,
+    eventLog
 } from "generated";
 
 type IdentityIsContract = [string, boolean];
@@ -64,7 +65,27 @@ async function upsertTransaction(context: Context, transaction: Transaction) {
     }
 }
 
-Mira.CreatePoolEvent.handler(async ({event, context}) => {
+const shouldReturnEarlyDueToDuplicate = async (event: eventLog<any>, context: Context) => {
+    const duplicateId = `${event.logIndex}_${event.transaction.id}_${event.block.id}`
+    const deduplicator = await context.DeDuplicator.get(duplicateId);
+    if (deduplicator === undefined) {
+        context.DeDuplicator.set({ id: duplicateId, additionalDuplications: 0 });
+        return false;
+    } else {
+        // Return Early
+        context.DeDuplicator.set({ ...deduplicator, additionalDuplications: deduplicator.additionalDuplications + 1 });
+        return true;
+    }
+}
+
+Mira.CreatePoolEvent.handler(async ({ event, context }) => {
+    context.log.info(`Handling CreatePoolEvent for pool ID: ${poolIdToStr(event.params.pool_id)}`);
+
+    if (await shouldReturnEarlyDueToDuplicate(event, context)) {
+        context.log.error(`Return Early due to duplicate in CreatePoolEvent - tx: ${event.transaction.id}`);
+        return;
+    }
+
     let pool = {
         id: poolIdToStr(event.params.pool_id),
         asset_0: event.params.pool_id[0].bits,
@@ -77,7 +98,16 @@ Mira.CreatePoolEvent.handler(async ({event, context}) => {
     context.Pool.set(pool);
 });
 
-Mira.MintEvent.handler(async ({event, context}) => {
+
+
+Mira.MintEvent.handler(async ({ event, context }) => {
+    context.log.info(`Handling MintEvent for transaction ID: ${event.transaction.id}`);
+
+    if (await shouldReturnEarlyDueToDuplicate(event, context)) {
+        context.log.error(`Return Early due to duplicate in MintEvent - tx: ${event.transaction.id}`);
+        return;
+    }
+
     let poolId = poolIdToStr(event.params.pool_id);
     let pool = await context.Pool.get(poolId);
     if (pool === undefined) {
@@ -111,7 +141,14 @@ Mira.MintEvent.handler(async ({event, context}) => {
     await upsertTransaction(context, transaction);
 });
 
-Mira.BurnEvent.handler(async ({event, context}) => {
+Mira.BurnEvent.handler(async ({ event, context }) => {
+    context.log.info(`Handling BurnEvent for transaction ID: ${event.transaction.id}`);
+
+    if (await shouldReturnEarlyDueToDuplicate(event, context)) {
+        context.log.error(`Return Early due to duplicate in BurnEvent - tx: ${event.transaction.id}`);
+        return;
+    }
+
     let poolId = poolIdToStr(event.params.pool_id);
     let pool = await context.Pool.get(poolId);
     if (pool === undefined) {
@@ -145,7 +182,14 @@ Mira.BurnEvent.handler(async ({event, context}) => {
     await upsertTransaction(context, transaction);
 });
 
-Mira.SwapEvent.handler(async ({event, context}) => {
+Mira.SwapEvent.handler(async ({ event, context }) => {
+    context.log.info(`Handling SwapEvent for transaction ID: ${event.transaction.id}`);
+
+    if (await shouldReturnEarlyDueToDuplicate(event, context)) {
+        context.log.error(`Return Early due to duplicate in SwapEvent - tx: ${event.transaction.id}`);
+        return;
+    }
+
     let poolId = poolIdToStr(event.params.pool_id);
 
     let dailyTimestamp = new Date(event.block.time * 1000).setHours(0, 0, 0, 0) / 1000;
