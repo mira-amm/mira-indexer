@@ -56,3 +56,54 @@ type DeDuplicator {
   id: ID!
   additionalDuplications: Int!
 }
+
+type RawCreatePoolEvent {
+  id: ID!
+  pool_id: String!
+  decimals_0: Int!
+  decimals_1: Int!
+  logIndex: Int!
+  transactionId: String!
+  blockId: String! 
+  blockHeight: Int!
+}
+
+type RawMintEvent {
+  id: ID!
+  pool_id: String!
+  recipient: String!
+  liquidity: String!
+  asset_0_in: BigInt!
+  asset_1_in: BigInt!
+  logIndex: Int!
+  transactionId: String!
+  blockId: String!
+  blockHeight: Int!
+}
+
+type RawBurnEvent {
+  id: ID!
+  pool_id: String!
+  recipient: String!
+  liquidity: String!
+  asset_0_out: BigInt!
+  asset_1_out: BigInt!
+  logIndex: Int!
+  transactionId: String!
+  blockId: String!
+  blockHeight: Int!
+}
+
+type RawSwapEvent { 
+  id: ID!
+  pool_id: String!
+  recipient: String!
+  asset_0_in: BigInt!
+  asset_1_in: BigInt!
+  asset_0_out: BigInt!
+  asset_1_out: BigInt!
+  logIndex: Int!
+  transactionId: String!
+  blockId: String!
+  blockHeight: Int!
+}
