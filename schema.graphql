@@ -12,6 +12,8 @@ type Pool {
     reserve_0: BigInt!
     reserve_1: BigInt!
     create_time: Int!
+    decimals_0: Int
+    decimals_1: Int
 }
 
 type Transaction {
