@@ -7,10 +7,29 @@ import {
     Mira_type8 as Identity,
     handlerContext as Context,
     Transaction,
-    eventLog
+    Pool,
 } from "generated";
+import {v4 as uuid} from 'uuid';
 
 type IdentityIsContract = [string, boolean];
+
+const ONE_E_18 = BigInt(10) ^ BigInt(18);
+const BASIS_POINTS = BigInt(10000);
+const AMM_FEES: AmmFees = {
+    lpFeeVolatile: BigInt(30),
+    lpFeeStable: BigInt(5),
+    protocolFeeStable: BigInt(0),
+    protocolFeeVolatile: BigInt(0),
+}
+
+function roundingUpDivision(nominator: bigint, denominator: bigint): bigint {
+    let roundingDownDivisionResult = nominator / denominator;
+    if (nominator % denominator === BigInt(0)) {
+        return roundingDownDivisionResult;
+    } else {
+        return roundingDownDivisionResult + BigInt(1);
+    }
+}
 
 interface ExtraEvent {
     pool_id: string;
@@ -49,12 +68,63 @@ function identityToStr(identity: Identity): IdentityIsContract {
     }
 }
 
+function powDecimals(decimals: number): bigint {
+    return BigInt(10) ^ BigInt(decimals);
+}
+
+interface AmmFees {
+    lpFeeVolatile: bigint,
+    lpFeeStable: bigint,
+    protocolFeeVolatile: bigint,
+    protocolFeeStable: bigint,
+}
+
+function k(
+    isStable: boolean,
+    x: bigint,
+    y: bigint,
+    powDecimalsX: bigint,
+    powDecimalsY: bigint
+): bigint {
+    if (isStable) {
+        const _x: bigint = x * ONE_E_18 / powDecimalsX;
+        const _y: bigint = y * ONE_E_18 / powDecimalsY;
+        const _a: bigint = _x * _y / ONE_E_18;
+        const _b: bigint = (_x * _x / ONE_E_18) + (_y * _y / ONE_E_18);
+        return _a * _b / ONE_E_18; // x3y+y3x >= k
+    } else {
+        return x * y; // xy >= k
+    }
+}
+
+function kPool(pool: Pool): bigint {
+    return k(
+        pool.is_stable,
+        pool.reserve_0,
+        pool.reserve_1,
+        powDecimals(pool.decimals_0),
+        powDecimals(pool.decimals_1),
+    );
+}
+
+function calculateFee(
+    poolId: PoolId,
+    amount: bigint,
+    ammFees: AmmFees
+): bigint {
+    const feeBP = poolId[2] ?
+        ammFees.lpFeeStable + ammFees.protocolFeeStable :
+        ammFees.lpFeeVolatile + ammFees.protocolFeeVolatile;
+    const nominator = amount * feeBP;
+    return roundingUpDivision(nominator, BASIS_POINTS);
+}
+
 async function upsertTransaction(context: Context, transaction: Transaction) {
-    let oldTransaction = await context.Transaction.get(transaction.id);
+    const oldTransaction = await context.Transaction.get(transaction.id);
     if (oldTransaction === undefined) {
         context.Transaction.set(transaction);
     } else {
-        let extra: ExtraEvent[] = JSON.parse(oldTransaction.extra ?? "[]");
+        const extra: ExtraEvent[] = JSON.parse(oldTransaction.extra ?? "[]");
         extra.push(extract(transaction));
         const enrichedTransaction = {
             ...oldTransaction,
@@ -68,16 +138,16 @@ async function upsertTransaction(context: Context, transaction: Transaction) {
 const shouldReturnEarlyDueToDuplicate = async (duplicateId: string, context: Context) => {
     const deduplicator = await context.DeDuplicator.get(duplicateId);
     if (deduplicator === undefined) {
-        context.DeDuplicator.set({ id: duplicateId, additionalDuplications: 0 });
+        context.DeDuplicator.set({id: duplicateId, additionalDuplications: 0});
         return false;
     } else {
         // Return Early
-        context.DeDuplicator.set({ ...deduplicator, additionalDuplications: deduplicator.additionalDuplications + 1 });
+        context.DeDuplicator.set({...deduplicator, additionalDuplications: deduplicator.additionalDuplications + 1});
         return true;
     }
 }
 
-Mira.CreatePoolEvent.handler(async ({ event, context }) => {
+Mira.CreatePoolEvent.handler(async ({event, context}) => {
     // Save a raw event
     const id = `${event.logIndex}_${event.transaction.id}_${event.block.height}`
     const rawEvent = {
@@ -99,7 +169,7 @@ Mira.CreatePoolEvent.handler(async ({ event, context }) => {
         return;
     }
 
-    let pool = {
+    const pool = {
         id: poolIdToStr(event.params.pool_id),
         asset_0: event.params.pool_id[0].bits,
         asset_1: event.params.pool_id[1].bits,
@@ -114,8 +184,7 @@ Mira.CreatePoolEvent.handler(async ({ event, context }) => {
 });
 
 
-
-Mira.MintEvent.handler(async ({ event, context }) => {
+Mira.MintEvent.handler(async ({event, context}) => {
     // Save a raw event
     const id = `${event.logIndex}_${event.transaction.id}_${event.block.height}`
     const rawEvent = {
@@ -139,10 +208,11 @@ Mira.MintEvent.handler(async ({ event, context }) => {
         return;
     }
 
-    let poolId = poolIdToStr(event.params.pool_id);
-    let pool = await context.Pool.get(poolId);
+    const poolId = poolIdToStr(event.params.pool_id);
+    const pool = await context.Pool.get(poolId);
     if (pool === undefined) {
         context.log.error(`Pool ${poolId} not found but received MintEvent`);
+        return;
     }
     context.Pool.set({
         id: poolId,
@@ -155,8 +225,8 @@ Mira.MintEvent.handler(async ({ event, context }) => {
         decimals_0: pool?.decimals_0,
         decimals_1: pool?.decimals_1,
     });
-    let [address, isContract] = identityToStr(event.params.recipient);
-    let transaction: Transaction = {
+    const [address, isContract] = identityToStr(event.params.recipient);
+    const transaction: Transaction = {
         id: event.transaction.id,
         transaction_type: "ADD_LIQUIDITY",
         pool_id: poolId,
@@ -174,7 +244,7 @@ Mira.MintEvent.handler(async ({ event, context }) => {
     await upsertTransaction(context, transaction);
 });
 
-Mira.BurnEvent.handler(async ({ event, context }) => {
+Mira.BurnEvent.handler(async ({event, context}) => {
     // Save a raw event
     const id = `${event.logIndex}_${event.transaction.id}_${event.block.height}`
     const rawEvent = {
@@ -198,10 +268,11 @@ Mira.BurnEvent.handler(async ({ event, context }) => {
         return;
     }
 
-    let poolId = poolIdToStr(event.params.pool_id);
-    let pool = await context.Pool.get(poolId);
+    const poolId = poolIdToStr(event.params.pool_id);
+    const pool = await context.Pool.get(poolId);
     if (pool === undefined) {
         context.log.error(`Pool ${poolId} not found but received BurnEvent`);
+        return;
     }
     context.Pool.set({
         id: poolId,
@@ -214,8 +285,8 @@ Mira.BurnEvent.handler(async ({ event, context }) => {
         decimals_0: pool?.decimals_0,
         decimals_1: pool?.decimals_1,
     });
-    let [address, isContract] = identityToStr(event.params.recipient);
-    let transaction: Transaction = {
+    const [address, isContract] = identityToStr(event.params.recipient);
+    const transaction: Transaction = {
         id: event.transaction.id,
         pool_id: poolId,
         transaction_type: "REMOVE_LIQUIDITY",
@@ -233,7 +304,7 @@ Mira.BurnEvent.handler(async ({ event, context }) => {
     await upsertTransaction(context, transaction);
 });
 
-Mira.SwapEvent.handler(async ({ event, context }) => {
+Mira.SwapEvent.handler(async ({event, context}) => {
     const id = `${event.logIndex}_${event.transaction.id}_${event.block.height}`
     const rawEvent = {
         id: id,
@@ -257,13 +328,13 @@ Mira.SwapEvent.handler(async ({ event, context }) => {
         return;
     }
 
-    let poolId = poolIdToStr(event.params.pool_id);
+    const poolId = poolIdToStr(event.params.pool_id);
 
-    let dailyTimestamp = new Date(event.block.time * 1000).setHours(0, 0, 0, 0) / 1000;
-    let dailySnapshotId = `${poolId}_${dailyTimestamp}`
+    const dailyTimestamp = new Date(event.block.time * 1000).setHours(0, 0, 0, 0) / 1000;
+    const dailySnapshotId = `${poolId}_${dailyTimestamp}`
 
-    let hourlyTimestamp = new Date(event.block.time * 1000).setMinutes(0, 0, 0) / 1000;
-    let hourlySnapshotId = `${poolId}_${hourlyTimestamp}`
+    const hourlyTimestamp = new Date(event.block.time * 1000).setMinutes(0, 0, 0) / 1000;
+    const hourlySnapshotId = `${poolId}_${hourlyTimestamp}`
 
     const [pool, dailySnapshot, hourlySnapshot] = await Promise.all([
         context.Pool.get(poolId),
@@ -273,9 +344,10 @@ Mira.SwapEvent.handler(async ({ event, context }) => {
 
     if (pool === undefined) {
         context.log.error(`Pool ${poolId} not found but received SwapEvent`);
+        return;
     }
 
-    context.Pool.set({
+    const updatedPool = {
         id: poolId,
         asset_0: event.params.pool_id[0].bits,
         asset_1: event.params.pool_id[1].bits,
@@ -285,10 +357,12 @@ Mira.SwapEvent.handler(async ({ event, context }) => {
         create_time: pool?.create_time ?? event.block.time,
         decimals_0: pool?.decimals_0,
         decimals_1: pool?.decimals_1,
-    });
+    }
 
-    let [address, isContract] = identityToStr(event.params.recipient);
-    let transaction: Transaction = {
+    context.Pool.set(updatedPool);
+
+    const [address, isContract] = identityToStr(event.params.recipient);
+    const transaction: Transaction = {
         id: event.transaction.id,
         pool_id: poolId,
         transaction_type: "SWAP",
@@ -326,4 +400,29 @@ Mira.SwapEvent.handler(async ({ event, context }) => {
         asset_1_in: (hourlySnapshot?.asset_1_in ?? 0n) + event.params.asset_1_in,
         asset_1_out: (hourlySnapshot?.asset_1_out ?? 0n) + event.params.asset_1_out,
     });
+
+    const k0 = kPool(pool);
+    const updatedPoolSubtractFees = {
+        ...updatedPool,
+        reserve_0: updatedPool.reserve_0 - calculateFee(event.params.pool_id, event.params.asset_0_in, AMM_FEES),
+        reserve_1: updatedPool.reserve_1 - calculateFee(event.params.pool_id, event.params.asset_1_in, AMM_FEES),
+    };
+    const k1 = kPool(updatedPoolSubtractFees);
+
+    if (k1 < k0) {
+        context.CurveViolation.set({
+            asset_0_in: event.params.asset_0_in,
+            asset_0_out: event.params.asset_0_out,
+            asset_1_in: event.params.asset_1_in,
+            asset_1_out: event.params.asset_1_out,
+            id: uuid(),
+            block_time: event.block.time,
+            pool_id: poolId,
+            reserve_0: pool.reserve_0,
+            reserve_1: pool.reserve_1,
+            new_reserve_0: updatedPool.reserve_0,
+            new_reserve_1: updatedPool.reserve_1,
+            tx_id: event.transaction.id
+        });
+    }
 });
