@@ -7,10 +7,13 @@ import {
     Mira_type8 as Identity,
     handlerContext as Context,
     Transaction,
-    eventLog
+    Pool,
 } from "generated";
+import {v4 as uuid} from 'uuid';
 
 type IdentityIsContract = [string, boolean];
+
+const ONE_E_18 = BigInt(10) ^ BigInt(18);
 
 interface ExtraEvent {
     pool_id: string;
@@ -49,6 +52,38 @@ function identityToStr(identity: Identity): IdentityIsContract {
     }
 }
 
+function powDecimals(decimals: number): bigint {
+    return BigInt(10) ^ BigInt(decimals);
+}
+
+function k(
+    isStable: boolean,
+    x: bigint,
+    y: bigint,
+    powDecimalsX: bigint,
+    powDecimalsY: bigint
+): bigint {
+    if (isStable) {
+        const _x: bigint = x * ONE_E_18 / powDecimalsX;
+        const _y: bigint = y * ONE_E_18 / powDecimalsY;
+        const _a: bigint = _x * _y / ONE_E_18;
+        const _b: bigint = (_x * _x / ONE_E_18) + (_y * _y / ONE_E_18);
+        return _a * _b / ONE_E_18; // x3y+y3x >= k
+    } else {
+        return x * y; // xy >= k
+    }
+}
+
+function k_pool(pool: Pool): bigint {
+    return k(
+        pool.is_stable,
+        pool.reserve_0,
+        pool.reserve_1,
+        powDecimals(pool.decimals_0),
+        powDecimals(pool.decimals_1),
+    );
+}
+
 async function upsertTransaction(context: Context, transaction: Transaction) {
     let oldTransaction = await context.Transaction.get(transaction.id);
     if (oldTransaction === undefined) {
@@ -68,16 +103,16 @@ async function upsertTransaction(context: Context, transaction: Transaction) {
 const shouldReturnEarlyDueToDuplicate = async (duplicateId: string, context: Context) => {
     const deduplicator = await context.DeDuplicator.get(duplicateId);
     if (deduplicator === undefined) {
-        context.DeDuplicator.set({ id: duplicateId, additionalDuplications: 0 });
+        context.DeDuplicator.set({id: duplicateId, additionalDuplications: 0});
         return false;
     } else {
         // Return Early
-        context.DeDuplicator.set({ ...deduplicator, additionalDuplications: deduplicator.additionalDuplications + 1 });
+        context.DeDuplicator.set({...deduplicator, additionalDuplications: deduplicator.additionalDuplications + 1});
         return true;
     }
 }
 
-Mira.CreatePoolEvent.handler(async ({ event, context }) => {
+Mira.CreatePoolEvent.handler(async ({event, context}) => {
     // Save a raw event
     const id = `${event.logIndex}_${event.transaction.id}_${event.block.height}`
     const rawEvent = {
@@ -114,8 +149,7 @@ Mira.CreatePoolEvent.handler(async ({ event, context }) => {
 });
 
 
-
-Mira.MintEvent.handler(async ({ event, context }) => {
+Mira.MintEvent.handler(async ({event, context}) => {
     // Save a raw event
     const id = `${event.logIndex}_${event.transaction.id}_${event.block.height}`
     const rawEvent = {
@@ -143,6 +177,7 @@ Mira.MintEvent.handler(async ({ event, context }) => {
     let pool = await context.Pool.get(poolId);
     if (pool === undefined) {
         context.log.error(`Pool ${poolId} not found but received MintEvent`);
+        return;
     }
     context.Pool.set({
         id: poolId,
@@ -174,7 +209,7 @@ Mira.MintEvent.handler(async ({ event, context }) => {
     await upsertTransaction(context, transaction);
 });
 
-Mira.BurnEvent.handler(async ({ event, context }) => {
+Mira.BurnEvent.handler(async ({event, context}) => {
     // Save a raw event
     const id = `${event.logIndex}_${event.transaction.id}_${event.block.height}`
     const rawEvent = {
@@ -202,6 +237,7 @@ Mira.BurnEvent.handler(async ({ event, context }) => {
     let pool = await context.Pool.get(poolId);
     if (pool === undefined) {
         context.log.error(`Pool ${poolId} not found but received BurnEvent`);
+        return;
     }
     context.Pool.set({
         id: poolId,
@@ -233,7 +269,7 @@ Mira.BurnEvent.handler(async ({ event, context }) => {
     await upsertTransaction(context, transaction);
 });
 
-Mira.SwapEvent.handler(async ({ event, context }) => {
+Mira.SwapEvent.handler(async ({event, context}) => {
     const id = `${event.logIndex}_${event.transaction.id}_${event.block.height}`
     const rawEvent = {
         id: id,
@@ -273,9 +309,10 @@ Mira.SwapEvent.handler(async ({ event, context }) => {
 
     if (pool === undefined) {
         context.log.error(`Pool ${poolId} not found but received SwapEvent`);
+        return;
     }
 
-    context.Pool.set({
+    let updated_pool = {
         id: poolId,
         asset_0: event.params.pool_id[0].bits,
         asset_1: event.params.pool_id[1].bits,
@@ -285,7 +322,9 @@ Mira.SwapEvent.handler(async ({ event, context }) => {
         create_time: pool?.create_time ?? event.block.time,
         decimals_0: pool?.decimals_0,
         decimals_1: pool?.decimals_1,
-    });
+    }
+
+    context.Pool.set(updated_pool);
 
     let [address, isContract] = identityToStr(event.params.recipient);
     let transaction: Transaction = {
@@ -326,4 +365,23 @@ Mira.SwapEvent.handler(async ({ event, context }) => {
         asset_1_in: (hourlySnapshot?.asset_1_in ?? 0n) + event.params.asset_1_in,
         asset_1_out: (hourlySnapshot?.asset_1_out ?? 0n) + event.params.asset_1_out,
     });
+
+    const k_0 = k_pool(pool);
+    const k_1 = k_pool(updated_pool);
+    if (k_1 < k_0) {
+        context.CurveViolation.set({
+            asset_0_in: event.params.asset_0_in,
+            asset_0_out: event.params.asset_0_out,
+            asset_1_in: event.params.asset_1_in,
+            asset_1_out: event.params.asset_1_out,
+            id: uuid(),
+            block_time: event.block.time,
+            pool_id: poolId,
+            reserve_0: pool.reserve_0,
+            reserve_1: pool.reserve_1,
+            new_reserve_0: updated_pool.reserve_0,
+            new_reserve_1: updated_pool.reserve_1,
+            tx_id: event.transaction.id
+        });
+    }
 });
