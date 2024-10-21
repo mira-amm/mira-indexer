@@ -14,6 +14,22 @@ import {v4 as uuid} from 'uuid';
 type IdentityIsContract = [string, boolean];
 
 const ONE_E_18 = BigInt(10) ^ BigInt(18);
+const BASIS_POINTS = BigInt(10000);
+const AMM_FEES: AmmFees = {
+    lpFeeVolatile: BigInt(30),
+    lpFeeStable: BigInt(5),
+    protocolFeeStable: BigInt(0),
+    protocolFeeVolatile: BigInt(0),
+}
+
+function roundingUpDivision(nominator: bigint, denominator: bigint): bigint {
+    let roundingDownDivisionResult = nominator / denominator;
+    if (nominator % denominator === BigInt(0)) {
+        return roundingDownDivisionResult;
+    } else {
+        return roundingDownDivisionResult + BigInt(1);
+    }
+}
 
 interface ExtraEvent {
     pool_id: string;
@@ -56,6 +72,13 @@ function powDecimals(decimals: number): bigint {
     return BigInt(10) ^ BigInt(decimals);
 }
 
+interface AmmFees {
+    lpFeeVolatile: bigint,
+    lpFeeStable: bigint,
+    protocolFeeVolatile: bigint,
+    protocolFeeStable: bigint,
+}
+
 function k(
     isStable: boolean,
     x: bigint,
@@ -74,7 +97,7 @@ function k(
     }
 }
 
-function k_pool(pool: Pool): bigint {
+function kPool(pool: Pool): bigint {
     return k(
         pool.is_stable,
         pool.reserve_0,
@@ -82,6 +105,18 @@ function k_pool(pool: Pool): bigint {
         powDecimals(pool.decimals_0),
         powDecimals(pool.decimals_1),
     );
+}
+
+function calculateFee(
+    poolId: PoolId,
+    amount: bigint,
+    ammFees: AmmFees
+): bigint {
+    const feeBP = poolId[2] ?
+        ammFees.lpFeeStable + ammFees.protocolFeeStable :
+        ammFees.lpFeeVolatile + ammFees.protocolFeeVolatile;
+    const nominator = amount * feeBP;
+    return roundingUpDivision(nominator, BASIS_POINTS);
 }
 
 async function upsertTransaction(context: Context, transaction: Transaction) {
@@ -312,19 +347,22 @@ Mira.SwapEvent.handler(async ({event, context}) => {
         return;
     }
 
-    const updated_pool = {
+    const delta_0 = event.params.asset_0_in - event.params.asset_0_out;
+    const delta_1 = event.params.asset_1_in - event.params.asset_1_out;
+
+    const updatedPool = {
         id: poolId,
         asset_0: event.params.pool_id[0].bits,
         asset_1: event.params.pool_id[1].bits,
         is_stable: event.params.pool_id[2],
-        reserve_0: (pool?.reserve_0 ?? 0n) + event.params.asset_0_in - event.params.asset_0_out,
-        reserve_1: (pool?.reserve_1 ?? 0n) + event.params.asset_1_in - event.params.asset_1_out,
+        reserve_0: (pool?.reserve_0 ?? 0n) + delta_0,
+        reserve_1: (pool?.reserve_1 ?? 0n) + delta_1,
         create_time: pool?.create_time ?? event.block.time,
         decimals_0: pool?.decimals_0,
         decimals_1: pool?.decimals_1,
     }
 
-    context.Pool.set(updated_pool);
+    context.Pool.set(updatedPool);
 
     const [address, isContract] = identityToStr(event.params.recipient);
     const transaction: Transaction = {
@@ -366,9 +404,15 @@ Mira.SwapEvent.handler(async ({event, context}) => {
         asset_1_out: (hourlySnapshot?.asset_1_out ?? 0n) + event.params.asset_1_out,
     });
 
-    const k_0 = k_pool(pool);
-    const k_1 = k_pool(updated_pool);
-    if (k_1 < k_0) {
+    const k0 = kPool(pool);
+    const updatedPoolSubtractFees = {
+        ...updatedPool,
+        reserve_0: updatedPool.reserve_0 - calculateFee(event.params.pool_id, delta_0, AMM_FEES),
+        reserve_1: updatedPool.reserve_1 - calculateFee(event.params.pool_id, delta_1, AMM_FEES),
+    };
+    const k1 = kPool(updatedPoolSubtractFees);
+
+    if (k1 < k0) {
         context.CurveViolation.set({
             asset_0_in: event.params.asset_0_in,
             asset_0_out: event.params.asset_0_out,
@@ -379,8 +423,8 @@ Mira.SwapEvent.handler(async ({event, context}) => {
             pool_id: poolId,
             reserve_0: pool.reserve_0,
             reserve_1: pool.reserve_1,
-            new_reserve_0: updated_pool.reserve_0,
-            new_reserve_1: updated_pool.reserve_1,
+            new_reserve_0: updatedPool.reserve_0,
+            new_reserve_1: updatedPool.reserve_1,
             tx_id: event.transaction.id
         });
     }
