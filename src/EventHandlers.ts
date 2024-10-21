@@ -85,11 +85,11 @@ function k_pool(pool: Pool): bigint {
 }
 
 async function upsertTransaction(context: Context, transaction: Transaction) {
-    let oldTransaction = await context.Transaction.get(transaction.id);
+    const oldTransaction = await context.Transaction.get(transaction.id);
     if (oldTransaction === undefined) {
         context.Transaction.set(transaction);
     } else {
-        let extra: ExtraEvent[] = JSON.parse(oldTransaction.extra ?? "[]");
+        const extra: ExtraEvent[] = JSON.parse(oldTransaction.extra ?? "[]");
         extra.push(extract(transaction));
         const enrichedTransaction = {
             ...oldTransaction,
@@ -134,7 +134,7 @@ Mira.CreatePoolEvent.handler(async ({event, context}) => {
         return;
     }
 
-    let pool = {
+    const pool = {
         id: poolIdToStr(event.params.pool_id),
         asset_0: event.params.pool_id[0].bits,
         asset_1: event.params.pool_id[1].bits,
@@ -173,8 +173,8 @@ Mira.MintEvent.handler(async ({event, context}) => {
         return;
     }
 
-    let poolId = poolIdToStr(event.params.pool_id);
-    let pool = await context.Pool.get(poolId);
+    const poolId = poolIdToStr(event.params.pool_id);
+    const pool = await context.Pool.get(poolId);
     if (pool === undefined) {
         context.log.error(`Pool ${poolId} not found but received MintEvent`);
         return;
@@ -190,8 +190,8 @@ Mira.MintEvent.handler(async ({event, context}) => {
         decimals_0: pool?.decimals_0,
         decimals_1: pool?.decimals_1,
     });
-    let [address, isContract] = identityToStr(event.params.recipient);
-    let transaction: Transaction = {
+    const [address, isContract] = identityToStr(event.params.recipient);
+    const transaction: Transaction = {
         id: event.transaction.id,
         transaction_type: "ADD_LIQUIDITY",
         pool_id: poolId,
@@ -233,8 +233,8 @@ Mira.BurnEvent.handler(async ({event, context}) => {
         return;
     }
 
-    let poolId = poolIdToStr(event.params.pool_id);
-    let pool = await context.Pool.get(poolId);
+    const poolId = poolIdToStr(event.params.pool_id);
+    const pool = await context.Pool.get(poolId);
     if (pool === undefined) {
         context.log.error(`Pool ${poolId} not found but received BurnEvent`);
         return;
@@ -250,8 +250,8 @@ Mira.BurnEvent.handler(async ({event, context}) => {
         decimals_0: pool?.decimals_0,
         decimals_1: pool?.decimals_1,
     });
-    let [address, isContract] = identityToStr(event.params.recipient);
-    let transaction: Transaction = {
+    const [address, isContract] = identityToStr(event.params.recipient);
+    const transaction: Transaction = {
         id: event.transaction.id,
         pool_id: poolId,
         transaction_type: "REMOVE_LIQUIDITY",
@@ -293,13 +293,13 @@ Mira.SwapEvent.handler(async ({event, context}) => {
         return;
     }
 
-    let poolId = poolIdToStr(event.params.pool_id);
+    const poolId = poolIdToStr(event.params.pool_id);
 
-    let dailyTimestamp = new Date(event.block.time * 1000).setHours(0, 0, 0, 0) / 1000;
-    let dailySnapshotId = `${poolId}_${dailyTimestamp}`
+    const dailyTimestamp = new Date(event.block.time * 1000).setHours(0, 0, 0, 0) / 1000;
+    const dailySnapshotId = `${poolId}_${dailyTimestamp}`
 
-    let hourlyTimestamp = new Date(event.block.time * 1000).setMinutes(0, 0, 0) / 1000;
-    let hourlySnapshotId = `${poolId}_${hourlyTimestamp}`
+    const hourlyTimestamp = new Date(event.block.time * 1000).setMinutes(0, 0, 0) / 1000;
+    const hourlySnapshotId = `${poolId}_${hourlyTimestamp}`
 
     const [pool, dailySnapshot, hourlySnapshot] = await Promise.all([
         context.Pool.get(poolId),
@@ -312,7 +312,7 @@ Mira.SwapEvent.handler(async ({event, context}) => {
         return;
     }
 
-    let updated_pool = {
+    const updated_pool = {
         id: poolId,
         asset_0: event.params.pool_id[0].bits,
         asset_1: event.params.pool_id[1].bits,
@@ -326,8 +326,8 @@ Mira.SwapEvent.handler(async ({event, context}) => {
 
     context.Pool.set(updated_pool);
 
-    let [address, isContract] = identityToStr(event.params.recipient);
-    let transaction: Transaction = {
+    const [address, isContract] = identityToStr(event.params.recipient);
+    const transaction: Transaction = {
         id: event.transaction.id,
         pool_id: poolId,
         transaction_type: "SWAP",
