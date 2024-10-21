@@ -12,8 +12,8 @@ type Pool {
     reserve_0: BigInt!
     reserve_1: BigInt!
     create_time: Int!
-    decimals_0: Int
-    decimals_1: Int
+    decimals_0: Int!
+    decimals_1: Int!
 }
 
 type Transaction {
@@ -108,4 +108,19 @@ type RawSwapEvent {
   transactionId: String!
   blockId: String!
   blockHeight: Int!
+}
+
+type CurveViolation {
+    id: ID!
+    tx_id: String!
+    pool_id: String!
+    block_time: Int!
+    reserve_0: BigInt!
+    reserve_1: BigInt!
+    new_reserve_0: BigInt!
+    new_reserve_1: BigInt!
+    asset_0_in: BigInt!
+    asset_1_in: BigInt!
+    asset_0_out: BigInt!
+    asset_1_out: BigInt!
 }
