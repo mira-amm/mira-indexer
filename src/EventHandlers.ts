@@ -347,16 +347,13 @@ Mira.SwapEvent.handler(async ({event, context}) => {
         return;
     }
 
-    const delta_0 = event.params.asset_0_in - event.params.asset_0_out;
-    const delta_1 = event.params.asset_1_in - event.params.asset_1_out;
-
     const updatedPool = {
         id: poolId,
         asset_0: event.params.pool_id[0].bits,
         asset_1: event.params.pool_id[1].bits,
         is_stable: event.params.pool_id[2],
-        reserve_0: (pool?.reserve_0 ?? 0n) + delta_0,
-        reserve_1: (pool?.reserve_1 ?? 0n) + delta_1,
+        reserve_0: (pool?.reserve_0 ?? 0n) + event.params.asset_0_in - event.params.asset_0_out,
+        reserve_1: (pool?.reserve_1 ?? 0n) + event.params.asset_1_in - event.params.asset_1_out,
         create_time: pool?.create_time ?? event.block.time,
         decimals_0: pool?.decimals_0,
         decimals_1: pool?.decimals_1,
@@ -407,8 +404,8 @@ Mira.SwapEvent.handler(async ({event, context}) => {
     const k0 = kPool(pool);
     const updatedPoolSubtractFees = {
         ...updatedPool,
-        reserve_0: updatedPool.reserve_0 - calculateFee(event.params.pool_id, delta_0, AMM_FEES),
-        reserve_1: updatedPool.reserve_1 - calculateFee(event.params.pool_id, delta_1, AMM_FEES),
+        reserve_0: updatedPool.reserve_0 - calculateFee(event.params.pool_id, event.params.asset_0_in, AMM_FEES),
+        reserve_1: updatedPool.reserve_1 - calculateFee(event.params.pool_id, event.params.asset_1_in, AMM_FEES),
     };
     const k1 = kPool(updatedPoolSubtractFees);
 
