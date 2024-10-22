@@ -123,4 +123,6 @@ type CurveViolation {
     asset_1_in: BigInt!
     asset_0_out: BigInt!
     asset_1_out: BigInt!
+    k_0: String!
+    k_1: String!
 }
