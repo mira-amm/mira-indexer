@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      bn.js:
+        specifier: ^5.2.1
+        version: 5.2.1
       envio:
         specifier: 2.5.2
         version: 2.5.2
@@ -19,6 +22,9 @@ importers:
         specifier: ./generated
         version: link:generated
     devDependencies:
+      '@types/bn.js':
+        specifier: ^5.1.6
+        version: 5.1.6
       '@types/chai':
         specifier: ^4.3.11
         version: 4.3.19

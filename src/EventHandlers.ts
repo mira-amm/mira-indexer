@@ -10,10 +10,11 @@ import {
     Pool,
 } from "generated";
 import {v4 as uuid} from 'uuid';
+import BN from 'bn.js';
 
 type IdentityIsContract = [string, boolean];
 
-const ONE_E_18 = BigInt(10) ^ BigInt(18);
+const ONE_E_18 = new BN(10).pow(new BN(18));
 const BASIS_POINTS = BigInt(10000);
 const AMM_FEES: AmmFees = {
     lpFeeVolatile: BigInt(30),
@@ -68,8 +69,8 @@ function identityToStr(identity: Identity): IdentityIsContract {
     }
 }
 
-function powDecimals(decimals: number): bigint {
-    return BigInt(10) ^ BigInt(decimals);
+function powDecimals(decimals: number): BN {
+    return new BN(10).pow(new BN(decimals));
 }
 
 interface AmmFees {
@@ -81,27 +82,27 @@ interface AmmFees {
 
 function k(
     isStable: boolean,
-    x: bigint,
-    y: bigint,
-    powDecimalsX: bigint,
-    powDecimalsY: bigint
-): bigint {
+    x: BN,
+    y: BN,
+    powDecimalsX: BN,
+    powDecimalsY: BN
+): BN {
     if (isStable) {
-        const _x: bigint = x * ONE_E_18 / powDecimalsX;
-        const _y: bigint = y * ONE_E_18 / powDecimalsY;
-        const _a: bigint = _x * _y / ONE_E_18;
-        const _b: bigint = (_x * _x / ONE_E_18) + (_y * _y / ONE_E_18);
-        return _a * _b / ONE_E_18; // x3y+y3x >= k
+        const _x: BN = x.mul(ONE_E_18).div(powDecimalsX);
+        const _y: BN = y.mul(ONE_E_18).div(powDecimalsY);
+        const _a: BN = _x.mul(_y).div(ONE_E_18);
+        const _b: BN = _x.mul(_x).div(ONE_E_18).add(_y.mul(_y).div(ONE_E_18));
+        return _a.mul(_b).div(ONE_E_18); // x3y+y3x >= k
     } else {
-        return x * y; // xy >= k
+        return x.mul(y); // xy >= k
     }
 }
 
-function kPool(pool: Pool): bigint {
+function kPool(pool: Pool): BN {
     return k(
         pool.is_stable,
-        pool.reserve_0,
-        pool.reserve_1,
+        new BN(pool.reserve_0.toString()),
+        new BN(pool.reserve_1.toString()),
         powDecimals(pool.decimals_0),
         powDecimals(pool.decimals_1),
     );
@@ -422,7 +423,9 @@ Mira.SwapEvent.handler(async ({event, context}) => {
             reserve_1: pool.reserve_1,
             new_reserve_0: updatedPool.reserve_0,
             new_reserve_1: updatedPool.reserve_1,
-            tx_id: event.transaction.id
+            tx_id: event.transaction.id,
+            k_0: k0.toString(),
+            k_1: k1.toString()
         });
     }
 });
