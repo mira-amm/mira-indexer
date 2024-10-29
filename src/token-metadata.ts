@@ -19,6 +19,6 @@ SRC20.SetNameEvent.handler(async ({ event, context }) => {
 
   context.Asset.set({
     ...asset,
-    name: event.params.name.payload!.bytes.toString(),
+    name: JSON.stringify(event.params.name.payload!.bytes),
   })
 }, { wildcard: true})
