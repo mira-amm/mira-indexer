@@ -2,13 +2,13 @@
 name: envio-indexer
 ecosystem: fuel
 networks:
-  - id: 9889
+  - id: 0
     start_block: 0
     contracts:
       - name: Mira
         address:
-          - 0x2e40f2b244b98ed6b8204b3de0156c6961f98525c8162f80162fcf53eebd90e7
-        abi_file_path: abis/mainnet/mira-abi.json
+          - 0xd5a716d967a9137222219657d7877bd8c79c64e1edb5de9f2901c98ebe74da80
+        abi_file_path: abis/testnet/mira-abi.json
         handler: src/EventHandlers.ts
         events:
           - name: MintEvent
