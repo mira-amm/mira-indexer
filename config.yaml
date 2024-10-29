@@ -15,4 +15,11 @@ networks:
           - name: BurnEvent
           - name: CreatePoolEvent
           - name: SwapEvent
+      - name: SRC20
+        abi_file_path: abis/mainnet/src20-abi.json
+        handler: src/token-metadata.ts
+        events:
+          - name: SetDecimalsEvent
+          - name: SetNameEvent
+          - name: SetSymbolEvent
 raw_events: true

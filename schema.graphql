@@ -4,6 +4,15 @@ enum TransactionType {
     SWAP
 }
 
+type Asset {
+    id: ID!
+    contract: String
+    sub_id: String
+    symbol: String
+    name: String
+    decimals: Int
+}
+
 type Pool {
     id: ID!
     asset_0: String!
